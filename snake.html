@@ -8,73 +8,82 @@
     <style>
         :root { --primary: #ff4757; --bg: #0f0f0f; --card: #1a1a1a; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; overflow-x: hidden; }
 
-        header { padding: 20px; text-align: center; background: #111; border-bottom: 2px solid var(--primary); sticky; top: 0; z-index: 100; }
-        .search-bar { width: 80%; max-width: 500px; padding: 12px 20px; border-radius: 25px; border: none; background: #222; color: white; outline: none; }
+        header { padding: 30px; text-align: center; background: #111; border-bottom: 2px solid var(--primary); position: sticky; top: 0; z-index: 100; }
+        .search-bar { width: 90%; max-width: 600px; padding: 15px 25px; border-radius: 30px; border: none; background: #222; color: white; font-size: 16px; outline: none; border: 1px solid #333; }
+        .search-bar:focus { border-color: var(--primary); }
 
-        /* The Grid */
-        .container { padding: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
-        .game-card { background: var(--card); border-radius: 10px; padding: 12px; text-align: center; cursor: pointer; border: 1px solid #333; transition: 0.2s; }
-        .game-card:hover { border-color: var(--primary); transform: scale(1.05); }
-        .game-card img { width: 50px; height: 50px; border-radius: 8px; margin-bottom: 8px; background: #333; }
-        .game-card p { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        /* THE GRID */
+        .container { padding: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+        .game-card { background: var(--card); border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; transition: 0.3s; border: 1px solid #333; }
+        .game-card:hover { transform: translateY(-5px); border-color: var(--primary); box-shadow: 0 5px 15px rgba(255, 71, 87, 0.3); }
+        .game-card img { width: 70px; height: 70px; margin-bottom: 10px; border-radius: 12px; object-fit: cover; background: #333; }
+        .game-card p { font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Game & Boss Overlays */
-        #game-overlay, #boss-screen { display: none; position: fixed; top:0; left:0; width:100%; height:100%; z-index: 5000; }
+        /* OVERLAYS */
+        #game-overlay, #boss-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5000; }
         #game-overlay { background: #000; }
         #boss-screen { background: #fff; flex-direction: column; align-items: center; padding-top: 15vh; z-index: 10000; }
-        .close-btn { position: fixed; top: 10px; right: 20px; font-size: 30px; color: white; cursor: pointer; z-index: 6000; }
+        .close-btn { position: fixed; top: 15px; right: 25px; font-size: 40px; color: white; cursor: pointer; z-index: 6000; font-weight: bold; }
+        
+        iframe { width: 100%; height: 100%; border: none; }
     </style>
 </head>
 <body>
 
     <div id="boss-screen">
         <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" width="272">
-        <input type="text" style="width: 584px; height: 44px; border: 1px solid #dfe1e5; border-radius: 24px; margin-top: 20px; padding: 0 20px;" placeholder="Search Google...">
+        <input type="text" style="width: 584px; height: 44px; border: 1px solid #dfe1e5; border-radius: 24px; margin-top: 20px; padding: 0 20px;" placeholder="Search Google..." id="boss-input">
     </div>
 
     <div id="game-overlay">
         <span class="close-btn" onclick="closeGame()">&times;</span>
-        <iframe id="game-frame" src="" style="width:100%; height:100%; border:none;"></iframe>
+        <iframe id="game-frame" src="" allow="autoplay; gamepad; fullscreen"></iframe>
     </div>
 
     <header>
-        <h1 style="color: var(--primary); margin-bottom: 10px;">PRO HUB</h1>
-        <input type="text" id="search" class="search-bar" placeholder="Search 100+ games..." onkeyup="filter()">
+        <h1 style="margin-bottom: 15px;">PRO GAME HUB</h1>
+        <input type="text" class="search-bar" id="search" placeholder="Search 100+ Games..." onkeyup="filterGames()">
     </header>
 
-    <div class="container" id="grid">
-        <p id="loading">Loading games from database...</p>
-    </div>
+    <div class="container" id="game-grid">
+        </div>
 
     <script>
-        // FETCHING THE DATA: Using a public unblocked games CDN
-        const GITHUB_JSON_URL = 'https://raw.githubusercontent.com/swarmintelli/Unblocked-Games-CDN/main/games.json';
+        // ADD YOUR GAMES HERE
+        // Format: { name: "Game Name", url: "Link", icon: "IconURL" }
+        const games = [
+            { name: "Basketball Random", url: "https://basketballrandom.io/", icon: "https://basketballrandom.io/favicon.ico" },
+            { name: "Retro Bowl", url: "https://retrobowl.me/", icon: "https://retrobowl.me/favicon.ico" },
+            { name: "Smash Karts", url: "https://smashkarts.io/", icon: "https://smashkarts.io/favicon.ico" },
+            { name: "Geometry Dash", url: "https://geometrydash.io/", icon: "https://geometrydash.io/favicon.ico" },
+            { name: "BitLife", url: "https://bitlifeonline.io/", icon: "" },
+            { name: "Slope", url: "https://slope-game.github.io/", icon: "" },
+            { name: "Tunnel Rush", url: "https://tunnelrush.io/", icon: "" },
+            { name: "1v1.LOL", url: "https://1v1.lol/", icon: "https://1v1.lol/favicon.ico" },
+            { name: "Subway Surfers", url: "https://subwaysurfersgame.io/", icon: "" },
+            { name: "Cookie Clicker", url: "https://orteil.dashnet.org/cookieclicker/", icon: "" },
+            { name: "Happy Wheels", url: "https://totaljerkface.com/happy_wheels.tjf", icon: "" },
+            { name: "Paper.io 2", url: "https://paper-io.com/", icon: "" },
+            // Add as many as you want below...
+        ];
 
-        async function loadGames() {
-            try {
-                const response = await fetch(GITHUB_JSON_URL);
-                const games = await response.json();
-                const grid = document.getElementById('grid');
-                grid.innerHTML = ''; // Clear loading text
-
-                games.forEach(game => {
-                    const card = document.createElement('div');
-                    card.className = 'game-card';
-                    // Using || to handle cases where image might be missing
-                    const icon = game.game_image_icon || 'https://www.google.com/favicon.ico';
-                    
-                    card.innerHTML = `
-                        <img src="${icon}" onerror="this.src='https://www.google.com/favicon.ico'">
-                        <p>${game.name}</p>
-                    `;
-                    card.onclick = () => openGame(game.game_url);
-                    grid.appendChild(card);
-                });
-            } catch (err) {
-                document.getElementById('grid').innerHTML = '<p>Error loading games. Try refreshing.</p>';
-            }
+        // This function builds the grid automatically
+        function buildGrid() {
+            const grid = document.getElementById('game-grid');
+            grid.innerHTML = '';
+            games.forEach(game => {
+                const card = document.createElement('div');
+                card.className = 'game-card';
+                const iconSrc = game.icon || 'https://www.google.com/favicon.ico';
+                card.innerHTML = `
+                    <img src="${iconSrc}" onerror="this.src='https://www.google.com/favicon.ico'">
+                    <p>${game.name}</p>
+                `;
+                card.onclick = () => openGame(game.url);
+                grid.appendChild(card);
+            });
         }
 
         function openGame(url) {
@@ -87,24 +96,24 @@
             document.getElementById('game-overlay').style.display = 'none';
         }
 
-        // Search Filter
-        function filter() {
-            let q = document.getElementById('search').value.toLowerCase();
+        function filterGames() {
+            let input = document.getElementById('search').value.toLowerCase();
             let cards = document.getElementsByClassName('game-card');
-            for (let c of cards) {
-                c.style.display = c.innerText.toLowerCase().includes(q) ? 'block' : 'none';
+            for (let card of cards) {
+                card.style.display = card.innerText.toLowerCase().includes(input) ? "block" : "none";
             }
         }
 
-        // Boss Key (Esc)
+        // BOSS KEY (ESC)
         document.addEventListener('keydown', (e) => {
             if (e.key === "Escape") {
                 const boss = document.getElementById('boss-screen');
                 boss.style.display = (boss.style.display === 'flex') ? 'none' : 'flex';
+                if(boss.style.display === 'flex') document.getElementById('boss-input').focus();
             }
         });
 
-        loadGames();
+        buildGrid();
     </script>
 </body>
 </html>
