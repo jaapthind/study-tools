@@ -7,21 +7,24 @@
     <link rel="icon" type="image/x-icon" href="https://www.google.com/favicon.ico">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background: #fff; font-family: 'Arial', sans-serif; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: #4a752c; font-family: 'Arial', sans-serif; }
 
-        /* THE GAME AREA */
-        #game-container {
-            width: 100%; height: 100vh;
-            display: flex; align-items: center; justify-content: center;
-            background: #4a752c;
+        /* THE GAME UI */
+        #game-wrapper {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; width: 100%;
         }
-        
-        iframe {
-            width: 100%; height: 100%; border: none;
-            transform: translateZ(0); /* Speed boost for MSI/Chromebook */
+        .header {
+            width: 400px; background: #4a752c; display: flex; justify-content: space-between;
+            padding: 10px; color: white; font-size: 24px; font-weight: bold;
+        }
+        canvas { 
+            background: #aad751; /* The classic two-tone green grid */
+            border: 10px solid #578a34; border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
-        /* THE GOOGLE DISGUISE */
+        /* THE GOOGLE BOSS SCREEN */
         #boss-screen {
             display: none; position: fixed; top: 0; left: 0;
             width: 100%; height: 100%; background: #fff; z-index: 10000;
@@ -31,55 +34,122 @@
         .search-input {
             width: 584px; max-width: 90%; height: 44px;
             padding: 0 45px; font-size: 16px;
-            border: 1px solid #dfe1e5; border-radius: 24px;
-            outline: none;
+            border: 1px solid #dfe1e5; border-radius: 24px; outline: none;
         }
-        .search-input:hover { box-shadow: 0 1px 6px rgba(32,33,36,.28); }
     </style>
 </head>
 <body>
 
     <div id="boss-screen">
         <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" class="google-logo">
-        <input type="text" id="fake-search" class="search-input" placeholder="Search Google or type a URL" autocomplete="off">
-        <div style="margin-top: 30px;">
-            <button style="padding: 10px 18px; background: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 4px; color: #3c4043;">Google Search</button>
-            <button style="padding: 10px 18px; background: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 4px; color: #3c4043; margin-left:10px;">I'm Feeling Lucky</button>
-        </div>
+        <input type="text" id="fake-search" class="search-input" placeholder="Search Google or type a URL">
     </div>
 
-    <div id="game-container">
-        <iframe 
-            id="game-frame"
-            src="https://snake.googlemaps.com/" 
-            allow="autoplay; fullscreen">
-        </iframe>
+    <div id="game-wrapper">
+        <div class="header">
+            <span id="score">🍎 0</span>
+            <span id="highScore">🏆 0</span>
+        </div>
+        <canvas id="snakeBoard" width="400" height="400"></canvas>
     </div>
 
     <script>
+        const canvas = document.getElementById("snakeBoard");
+        const ctx = canvas.getContext("2d");
         const boss = document.getElementById("boss-screen");
-        const gameFrame = document.getElementById("game-frame");
         const fakeSearch = document.getElementById("fake-search");
+        
+        let score = 0;
+        let highScore = localStorage.getItem("snakeHS") || 0;
+        document.getElementById("highScore").innerText = "🏆 " + highScore;
 
+        const box = 20;
+        let snake = [{x: 10 * box, y: 10 * box}];
+        let food = { x: Math.floor(Math.random()*20)*box, y: Math.floor(Math.random()*20)*box };
+        let d = "RIGHT";
+
+        // Controls & Boss Key
         document.addEventListener("keydown", (e) => {
+            if(e.keyCode == 37 && d != "RIGHT") d = "LEFT";
+            else if(e.keyCode == 38 && d != "DOWN") d = "UP";
+            else if(e.keyCode == 39 && d != "LEFT") d = "RIGHT";
+            else if(e.keyCode == 40 && d != "UP") d = "DOWN";
+
             if (e.key === "Escape") {
                 if (boss.style.display === "flex") {
                     boss.style.display = "none";
-                    gameFrame.style.visibility = "visible";
-                    document.title = "Snake Game";
+                    document.title = "Google";
                 } else {
                     boss.style.display = "flex";
-                    gameFrame.style.visibility = "hidden";
-                    document.title = "Google";
                     fakeSearch.focus();
                 }
             }
         });
 
-        fakeSearch.addEventListener("keypress", (e) => {
-            if (e.key === "Enter" && fakeSearch.value !== "") {
-                window.location.href = "https://www.google.com/search?q=" + encodeURIComponent(fakeSearch.value);
+        function draw() {
+            // Draw Background Grid
+            for(let i=0; i<20; i++) {
+                for(let j=0; j<20; j++) {
+                    ctx.fillStyle = (i+j) % 2 == 0 ? "#aad751" : "#a2d149";
+                    ctx.fillRect(i*box, j*box, box, box);
+                }
             }
+
+            // Draw Snake
+            for(let i=0; i<snake.length; i++) {
+                ctx.fillStyle = (i == 0) ? "#4672ef" : "#5786f2"; // Blue snake like Google Maps
+                ctx.fillRect(snake[i].x, snake[i].y, box, box);
+            }
+
+            // Draw Apple
+            ctx.fillStyle = "#e74c3c";
+            ctx.beginPath();
+            ctx.arc(food.x + box/2, food.y + box/2, box/2 - 2, 0, Math.PI*2);
+            ctx.fill();
+
+            let snakeX = snake[0].x;
+            let snakeY = snake[0].y;
+
+            if(d == "LEFT") snakeX -= box;
+            if(d == "UP") snakeY -= box;
+            if(d == "RIGHT") snakeX += box;
+            if(d == "DOWN") snakeY += box;
+
+            if(snakeX == food.x && snakeY == food.y) {
+                score++;
+                document.getElementById("score").innerText = "🍎 " + score;
+                food = { x: Math.floor(Math.random()*20)*box, y: Math.floor(Math.random()*20)*box };
+                if(score > highScore) {
+                    highScore = score;
+                    localStorage.setItem("snakeHS", highScore);
+                    document.getElementById("highScore").innerText = "🏆 " + highScore;
+                }
+            } else {
+                snake.pop();
+            }
+
+            let newHead = {x: snakeX, y: snakeY};
+
+            if(snakeX < 0 || snakeX >= 400 || snakeY < 0 || snakeY >= 400 || collision(newHead, snake)) {
+                snake = [{x: 10 * box, y: 10 * box}];
+                score = 0;
+                d = "RIGHT";
+                document.getElementById("score").innerText = "🍎 0";
+            }
+            snake.unshift(newHead);
+        }
+
+        function collision(head, array) {
+            for(let i=0; i<array.length; i++) {
+                if(head.x == array[i].x && head.y == array[i].y) return true;
+            }
+            return false;
+        }
+
+        setInterval(draw, 100);
+
+        fakeSearch.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") window.location.href = "https://www.google.com/search?q=" + fakeSearch.value;
         });
     </script>
 </body>
