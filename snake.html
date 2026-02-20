@@ -6,77 +6,105 @@
     <title>Google</title>
     <link rel="icon" type="image/x-icon" href="https://www.google.com/favicon.ico">
     <style>
+        :root { --primary: #ff4757; --bg: #0f0f0f; --card: #1a1a1a; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background: #fff; font-family: 'Arial', sans-serif; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; }
 
-        /* THE GAME AREA */
-        #game-container {
-            width: 100%; height: 100vh;
-            display: flex; align-items: center; justify-content: center;
-            background: #4a752c;
-        }
-        
-        iframe {
-            width: 100%; height: 100%; border: none;
-            /* Using translate3d to keep it smooth on your MSI and Chromebook */
-            transform: translate3d(0,0,0);
-        }
+        header { padding: 20px; text-align: center; background: #111; border-bottom: 2px solid var(--primary); sticky; top: 0; z-index: 100; }
+        .search-bar { width: 80%; max-width: 500px; padding: 12px 20px; border-radius: 25px; border: none; background: #222; color: white; outline: none; }
 
-        /* THE GOOGLE BOSS SCREEN */
-        #boss-screen {
-            display: none; position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%; background: #fff; z-index: 10000;
-            flex-direction: column; align-items: center; padding-top: 15vh;
-        }
-        .google-logo { width: 272px; margin-bottom: 30px; }
-        .search-input {
-            width: 584px; max-width: 90%; height: 44px;
-            padding: 0 45px; font-size: 16px;
-            border: 1px solid #dfe1e5; border-radius: 24px;
-            outline: none;
-        }
+        /* The Grid */
+        .container { padding: 30px; display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .game-card { background: var(--card); border-radius: 10px; padding: 12px; text-align: center; cursor: pointer; border: 1px solid #333; transition: 0.2s; }
+        .game-card:hover { border-color: var(--primary); transform: scale(1.05); }
+        .game-card img { width: 50px; height: 50px; border-radius: 8px; margin-bottom: 8px; background: #333; }
+        .game-card p { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        /* Game & Boss Overlays */
+        #game-overlay, #boss-screen { display: none; position: fixed; top:0; left:0; width:100%; height:100%; z-index: 5000; }
+        #game-overlay { background: #000; }
+        #boss-screen { background: #fff; flex-direction: column; align-items: center; padding-top: 15vh; z-index: 10000; }
+        .close-btn { position: fixed; top: 10px; right: 20px; font-size: 30px; color: white; cursor: pointer; z-index: 6000; }
     </style>
 </head>
 <body>
 
     <div id="boss-screen">
-        <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" class="google-logo">
-        <input type="text" id="fake-search" class="search-input" placeholder="Search Google or type a URL" autocomplete="off">
+        <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" width="272">
+        <input type="text" style="width: 584px; height: 44px; border: 1px solid #dfe1e5; border-radius: 24px; margin-top: 20px; padding: 0 20px;" placeholder="Search Google...">
     </div>
 
-    <div id="game-container">
-        <iframe 
-            id="game-frame"
-            src="https://www.google.com/fbx?fbx=snake_arcade" 
-            allow="autoplay; gamepad; fullscreen">
-        </iframe>
+    <div id="game-overlay">
+        <span class="close-btn" onclick="closeGame()">&times;</span>
+        <iframe id="game-frame" src="" style="width:100%; height:100%; border:none;"></iframe>
+    </div>
+
+    <header>
+        <h1 style="color: var(--primary); margin-bottom: 10px;">PRO HUB</h1>
+        <input type="text" id="search" class="search-bar" placeholder="Search 100+ games..." onkeyup="filter()">
+    </header>
+
+    <div class="container" id="grid">
+        <p id="loading">Loading games from database...</p>
     </div>
 
     <script>
-        const boss = document.getElementById("boss-screen");
-        const gameFrame = document.getElementById("game-frame");
-        const fakeSearch = document.getElementById("fake-search");
+        // FETCHING THE DATA: Using a public unblocked games CDN
+        const GITHUB_JSON_URL = 'https://raw.githubusercontent.com/swarmintelli/Unblocked-Games-CDN/main/games.json';
 
-        document.addEventListener("keydown", (e) => {
+        async function loadGames() {
+            try {
+                const response = await fetch(GITHUB_JSON_URL);
+                const games = await response.json();
+                const grid = document.getElementById('grid');
+                grid.innerHTML = ''; // Clear loading text
+
+                games.forEach(game => {
+                    const card = document.createElement('div');
+                    card.className = 'game-card';
+                    // Using || to handle cases where image might be missing
+                    const icon = game.game_image_icon || 'https://www.google.com/favicon.ico';
+                    
+                    card.innerHTML = `
+                        <img src="${icon}" onerror="this.src='https://www.google.com/favicon.ico'">
+                        <p>${game.name}</p>
+                    `;
+                    card.onclick = () => openGame(game.game_url);
+                    grid.appendChild(card);
+                });
+            } catch (err) {
+                document.getElementById('grid').innerHTML = '<p>Error loading games. Try refreshing.</p>';
+            }
+        }
+
+        function openGame(url) {
+            document.getElementById('game-frame').src = url;
+            document.getElementById('game-overlay').style.display = 'block';
+        }
+
+        function closeGame() {
+            document.getElementById('game-frame').src = '';
+            document.getElementById('game-overlay').style.display = 'none';
+        }
+
+        // Search Filter
+        function filter() {
+            let q = document.getElementById('search').value.toLowerCase();
+            let cards = document.getElementsByClassName('game-card');
+            for (let c of cards) {
+                c.style.display = c.innerText.toLowerCase().includes(q) ? 'block' : 'none';
+            }
+        }
+
+        // Boss Key (Esc)
+        document.addEventListener('keydown', (e) => {
             if (e.key === "Escape") {
-                if (boss.style.display === "flex") {
-                    boss.style.display = "none";
-                    gameFrame.style.visibility = "visible";
-                    document.title = "Snake Game";
-                } else {
-                    boss.style.display = "flex";
-                    gameFrame.style.visibility = "hidden";
-                    document.title = "Google";
-                    fakeSearch.focus();
-                }
+                const boss = document.getElementById('boss-screen');
+                boss.style.display = (boss.style.display === 'flex') ? 'none' : 'flex';
             }
         });
 
-        fakeSearch.addEventListener("keypress", (e) => {
-            if (e.key === "Enter" && fakeSearch.value !== "") {
-                window.location.href = "https://www.google.com/search?q=" + encodeURIComponent(fakeSearch.value);
-            }
-        });
+        loadGames();
     </script>
 </body>
 </html>
