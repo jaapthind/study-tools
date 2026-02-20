@@ -9,17 +9,16 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { width: 100%; height: 100%; overflow: hidden; background: #fff; font-family: 'Arial', sans-serif; }
 
-        /* THE GAME CONTAINER */
+        /* THE GAME AREA */
         #game-container {
             width: 100%; height: 100vh;
             display: flex; align-items: center; justify-content: center;
-            background: #4a752c; /* The green background from the game */
+            background: #4a752c;
         }
         
         iframe {
             width: 100%; height: 100%; border: none;
-            /* Performance boost for your Chromebook/MSI */
-            transform: translateZ(0);
+            transform: translateZ(0); /* Speed boost for MSI/Chromebook */
         }
 
         /* THE GOOGLE DISGUISE */
@@ -44,15 +43,15 @@
         <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" class="google-logo">
         <input type="text" id="fake-search" class="search-input" placeholder="Search Google or type a URL" autocomplete="off">
         <div style="margin-top: 30px;">
-            <button style="padding: 10px 18px; background: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 4px; color: #3c4043; cursor: pointer;">Google Search</button>
-            <button style="padding: 10px 18px; background: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 4px; color: #3c4043; margin-left:10px; cursor: pointer;">I'm Feeling Lucky</button>
+            <button style="padding: 10px 18px; background: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 4px; color: #3c4043;">Google Search</button>
+            <button style="padding: 10px 18px; background: #f8f9fa; border: 1px solid #f8f9fa; border-radius: 4px; color: #3c4043; margin-left:10px;">I'm Feeling Lucky</button>
         </div>
     </div>
 
     <div id="game-container">
         <iframe 
             id="game-frame"
-            src="https://www.google.com/logos/2010/pacman10-i.html?snake=1" 
+            src="https://snake.googlemaps.com/" 
             allow="autoplay; fullscreen">
         </iframe>
     </div>
@@ -63,7 +62,6 @@
         const fakeSearch = document.getElementById("fake-search");
 
         document.addEventListener("keydown", (e) => {
-            // PRESS 'ESC' TO TOGGLE
             if (e.key === "Escape") {
                 if (boss.style.display === "flex") {
                     boss.style.display = "none";
@@ -78,7 +76,6 @@
             }
         });
 
-        // Real Google Search Redirection
         fakeSearch.addEventListener("keypress", (e) => {
             if (e.key === "Enter" && fakeSearch.value !== "") {
                 window.location.href = "https://www.google.com/search?q=" + encodeURIComponent(fakeSearch.value);
