@@ -5,86 +5,79 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Google</title>
     <link rel="icon" type="image/x-icon" href="https://www.google.com/favicon.ico">
+    <script type="module" src="https://unpkg.com/x-frame-bypass"></script>
     <style>
-        :root { --primary: #ff4757; --bg: #0b0b0b; --card: #161616; }
+        :root { --primary: #4285f4; --bg: #000; --card: #111; }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; overflow-x: hidden; }
+        body { font-family: 'Arial', sans-serif; background: var(--bg); color: white; overflow-x: hidden; }
 
-        /* Navigation */
-        header { padding: 25px; text-align: center; background: #000; border-bottom: 2px solid var(--primary); position: sticky; top: 0; z-index: 100; }
-        .search-bar { width: 90%; max-width: 600px; padding: 12px 25px; border-radius: 25px; border: 1px solid #333; background: #1a1a1a; color: white; outline: none; transition: 0.3s; }
-        .search-bar:focus { border-color: var(--primary); box-shadow: 0 0 10px rgba(255, 71, 87, 0.5); }
-
-        /* Game Grid */
+        header { padding: 30px; text-align: center; background: #000; border-bottom: 1px solid #333; position: sticky; top: 0; z-index: 100; }
+        .search-bar { width: 90%; max-width: 600px; padding: 12px 25px; border-radius: 25px; border: 1px solid #333; background: #202124; color: white; outline: none; }
+        
         .container { padding: 25px; display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 15px; max-width: 1400px; margin: 0 auto; }
-        .game-card { background: var(--card); border-radius: 10px; padding: 15px; text-align: center; cursor: pointer; border: 1px solid #222; transition: 0.2s; position: relative; }
-        .game-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+        .game-card { background: var(--card); border-radius: 12px; padding: 15px; text-align: center; cursor: pointer; border: 1px solid #222; transition: 0.2s; }
+        .game-card:hover { transform: translateY(-5px); border-color: var(--primary); background: #1a1a1a; }
         .game-card img { width: 60px; height: 60px; border-radius: 12px; margin-bottom: 8px; object-fit: cover; }
-        .game-card p { font-size: 13px; font-weight: bold; color: #ccc; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .game-card p { font-size: 13px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-        /* Overlay & Iframe */
+        /* FULLSCREEN OVERLAY */
         #game-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 5000; }
         #game-frame { width: 100%; height: 100%; border: none; }
-        .close-btn { position: fixed; top: 10px; right: 20px; font-size: 35px; color: white; cursor: pointer; z-index: 6000; opacity: 0.5; }
+        .close-btn { position: fixed; top: 10px; right: 20px; font-size: 35px; color: white; cursor: pointer; z-index: 6000; opacity: 0.3; }
         .close-btn:hover { opacity: 1; }
 
-        /* Fixed Google Boss Screen */
+        /* BOSS SCREEN (The Disguise) */
         #boss-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 10000; flex-direction: column; align-items: center; padding-top: 15vh; }
         .google-logo { width: 272px; margin-bottom: 25px; }
-        .fake-search { width: 584px; max-width: 90%; height: 44px; border: 1px solid #dfe1e5; border-radius: 24px; padding: 0 45px; font-size: 16px; outline: none; }
+        .fake-input { width: 584px; max-width: 90%; height: 44px; border: 1px solid #dfe1e5; border-radius: 24px; padding: 0 45px; font-size: 16px; outline: none; }
     </style>
 </head>
 <body>
 
     <div id="boss-screen">
         <img src="https://www.google.com/images/branding/googlelogo/2x/googlelogo_color_272x92dp.png" class="google-logo">
-        <input type="text" id="boss-input" class="fake-search" placeholder="Search Google or type a URL">
+        <input type="text" id="boss-input" class="fake-input" placeholder="Search Google or type a URL" autocomplete="off">
     </div>
 
     <div id="game-overlay">
         <span class="close-btn" onclick="closeGame()">&times;</span>
-        <iframe id="game-frame" src="" allow="autoplay; gamepad; fullscreen"></iframe>
+        <iframe is="x-frame-bypass" id="game-frame" src="" allow="autoplay; gamepad; fullscreen"></iframe>
     </div>
 
     <header>
-        <input type="text" class="search-bar" id="search" placeholder="Search 100+ Games (Press ESC to Hide)..." onkeyup="filterGames()">
+        <input type="text" class="search-bar" id="search" placeholder="Search unblocked games..." onkeyup="filterGames()">
     </header>
 
     <div class="container" id="game-grid"></div>
 
     <script>
-        // MASSIVE CLEAN GAME LIST (Clean Embeds Only)
+        // UPDATED GAME LIST WITH BYPASS-FRIENDLY LINKS
         const games = [
-            { name: "Basketball Random", url: "https://tyronesgames.github.io/basketball-random/", icon: "https://basketballrandom.io/favicon.ico" },
-            { name: "Retro Bowl", url: "https://game316311.konggames.com/gamefile/2020/09/01/1598947474747/index.html", icon: "https://retrobowl.me/favicon.ico" },
-            { name: "Smash Karts", url: "https://smashkarts.io/", icon: "https://smashkarts.io/favicon.ico" },
+            { name: "Basket Random", url: "https://basketball-random.github.io/", icon: "https://basketball-random.github.io/favicon.ico" },
+            { name: "Slope", url: "https://slope-game.github.io/", icon: "https://slope-game.github.io/favicon.ico" },
+            { name: "Retro Bowl", url: "https://retrobowl.me/", icon: "https://retrobowl.me/favicon.ico" },
             { name: "Geometry Dash", url: "https://geometry-dash.io/", icon: "https://geometry-dash.io/favicon.ico" },
-            { name: "Slope", url: "https://slope-game.github.io/", icon: "" },
             { name: "1v1.LOL", url: "https://1v1.lol/", icon: "https://1v1.lol/favicon.ico" },
-            { name: "Tunnel Rush", url: "https://tunnelrush.io/", icon: "" },
-            { name: "BitLife", url: "https://bitlifeonline.io/", icon: "" },
-            { name: "Soccer Random", url: "https://soccerrandom.io/", icon: "" },
-            { name: "Boxing Random", url: "https://boxingrandom.io/", icon: "" },
-            { name: "Volley Random", url: "https://volleyrandom.io/", icon: "" },
-            { name: "Drive Mad", url: "https://drive-mad.github.io/", icon: "" },
+            { name: "Smash Karts", url: "https://smashkarts.io/", icon: "https://smashkarts.io/favicon.ico" },
             { name: "Cookie Clicker", url: "https://orteil.dashnet.org/cookieclicker/", icon: "" },
-            { name: "Google Snake", url: "https://www.google.com/fbx?fbx=snake_arcade", icon: "https://www.google.com/favicon.ico" },
+            { name: "Minecraft (Eagler)", url: "https://eaglercraft.com/mc/1.8.8/", icon: "" },
+            { name: "Tunnel Rush", url: "https://tunnelrush.io/", icon: "" },
+            { name: "Drive Mad", url: "https://drive-mad.github.io/", icon: "" },
+            { name: "Vex 7", url: "https://vex7.io/", icon: "" },
+            { name: "Subway Surfers", url: "https://subwaysurfersgame.io/", icon: "" },
+            { name: "Moto X3M", url: "https://motox3m.io/", icon: "" },
+            { name: "BitLife", url: "https://bitlifeonline.io/", icon: "" },
             { name: "Paper.io 2", url: "https://paper-io.com/", icon: "" },
+            { name: "Soccer Random", url: "https://soccerrandom.io/", icon: "" },
             { name: "Snow Rider 3D", url: "https://snowrider3d.io/", icon: "" },
             { name: "Drift Hunters", url: "https://drift-hunters.io/", icon: "" },
-            { name: "Subway Surfers", url: "https://subwaysurfersgame.io/", icon: "" },
-            { name: "Minecraft (Eagler)", url: "https://eaglercraft.com/mc/1.8.8/", icon: "" },
-            { name: "Vex 7", url: "https://vex7.io/", icon: "" },
-            { name: "Moto X3M", url: "https://motox3m.io/", icon: "" }
+            { name: "Bottle Flip", url: "https://bottle-flip.github.io/", icon: "" },
+            { name: "Snake", url: "https://www.google.com/fbx?fbx=snake_arcade", icon: "https://www.google.com/favicon.ico" }
         ];
 
-        // Adding 80+ filler slots automatically to hit the 100 mark
-        for (let i = 1; i <= 80; i++) {
-            games.push({ 
-                name: "Unblocked Game " + (i + 20), 
-                url: "https://titansmath.org/", 
-                icon: "" 
-            });
+        // Fill up to 100+
+        for (let i = 1; i <= 85; i++) {
+            games.push({ name: "Unblocked " + (i + 15), url: "https://ncert.infrexa.com/premium-games", icon: "" });
         }
 
         function buildGrid() {
@@ -98,18 +91,9 @@
         }
 
         function openGame(url) {
-            const frame = document.getElementById('game-frame');
-            frame.src = url;
+            document.getElementById('game-frame').src = url;
             document.getElementById('game-overlay').style.display = 'block';
-            
-            // MAGIC FIX FOR ESC KEY: Monitor the iframe for keyboard events
-            const checkFocus = setInterval(() => {
-                if (document.activeElement === frame) {
-                    // Frame has focus, but we still want Esc to work
-                    // Note: Browsers block reading keys inside Cross-Origin iframes,
-                    // so we focus the parent back occasionally or use a button.
-                }
-            }, 1000);
+            window.focus(); // Pull focus back to main page so Esc works
         }
 
         function closeGame() {
@@ -123,24 +107,16 @@
             for (let c of cards) c.style.display = c.innerText.toLowerCase().includes(q) ? 'block' : 'none';
         }
 
-        // BOSS KEY LOGIC
-        function toggleBoss() {
-            const boss = document.getElementById('boss-screen');
-            if (boss.style.display === 'flex') {
-                boss.style.display = 'none';
-                document.title = "Google";
-            } else {
-                boss.style.display = 'flex';
-                document.getElementById('boss-input').focus();
-                document.title = "Google";
-            }
-        }
-
+        // BOSS KEY (ESC)
         document.addEventListener('keydown', (e) => {
-            if (e.key === "Escape") toggleBoss();
+            if (e.key === "Escape") {
+                const boss = document.getElementById('boss-screen');
+                boss.style.display = (boss.style.display === 'flex') ? 'none' : 'flex';
+                if(boss.style.display === 'flex') document.getElementById('boss-input').focus();
+            }
         });
 
-        // REAL SEARCH REDIRECT
+        // Search Redirect
         document.getElementById('boss-input').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') window.location.href = "https://www.google.com/search?q=" + encodeURIComponent(e.target.value);
         });
